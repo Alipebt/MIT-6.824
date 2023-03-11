@@ -14,12 +14,12 @@ import "strconv"
 // and reply for an RPC.
 //
 
-type ExampleArgs struct {
-	X int
+type Args struct {
+	argsname string
 }
 
-type ExampleReply struct {
-	Y int
+type Reply struct {
+	files[] KeyValue
 }
 
 // Add your RPC definitions here.

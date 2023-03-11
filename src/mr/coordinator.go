@@ -2,27 +2,39 @@ package mr
 
 import "log"
 import "net"
-import "os"
 import "net/rpc"
 import "net/http"
 
 
 type Coordinator struct {
 	// Your definitions here.
-
+	file []KeyValue
+	nReaduce int
 }
 
 // Your code here -- RPC handlers for the worker to call.
-
+func (c *Coordinator) GetFilenames(args *Args, reply *Reply) error {
+	nReaduce := 0
+	for _, file := range c.file {
+		if file.Value != "a" {
+			reply.files = append(reply.files, file)
+			nReaduce++
+		}
+		if nReaduce > c.nReaduce {
+			break
+		}
+	}
+	return nil
+}
 //
 // an example RPC handler.
 //
 // the RPC argument and reply types are defined in rpc.go.
 //
-func (c *Coordinator) Example(args *ExampleArgs, reply *ExampleReply) error {
-	reply.Y = args.X + 1
-	return nil
-}
+// func (c *Coordinator) Example(args *Args, reply *Reply) error {
+//	reply.Y = args.X + 1
+// 	return nil
+// }
 
 
 //
@@ -31,10 +43,10 @@ func (c *Coordinator) Example(args *ExampleArgs, reply *ExampleReply) error {
 func (c *Coordinator) server() {
 	rpc.Register(c)
 	rpc.HandleHTTP()
-	//l, e := net.Listen("tcp", ":1234")
-	sockname := coordinatorSock()
-	os.Remove(sockname)
-	l, e := net.Listen("unix", sockname)
+	l, e := net.Listen("tcp", ":1234")
+	// sockname := coordinatorSock()
+	// os.Remove(sockname)
+	// l, e := net.Listen("unix", sockname)
 	if e != nil {
 		log.Fatal("listen error:", e)
 	}
@@ -61,9 +73,16 @@ func (c *Coordinator) Done() bool {
 //
 func MakeCoordinator(files []string, nReduce int) *Coordinator {
 	c := Coordinator{}
-
 	// Your code here.
+	kva := KeyValue{}
+	c.nReaduce = nReduce
 
+	for _, file := range files {
+		kva.Key = file
+		kva.Value = "ua"	//unassigned
+
+		c.file = append(c.file, kva)
+	}
 
 	c.server()
 	return &c
